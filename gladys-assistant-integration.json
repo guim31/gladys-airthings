@@ -1,177 +1,306 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Airthings",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Radon, CO₂, VOC, particles, temperature and humidity of your Airthings sensors.",
+    "fr": "Radon, CO₂, COV, particules, température et humidité de vos capteurs Airthings.",
+    "de": "Radon, CO₂, VOC, Feinstaub, Temperatur und Luftfeuchtigkeit deiner Airthings-Sensoren.",
+    "es": "Radón, CO₂, COV, partículas, temperatura y humedad de sus sensores Airthings."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-airthings:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-airthings/main/cover.png",
+  "categories": ["environment"],
+  "transports": ["cloud"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Airthings API client",
+        "fr": "Client d'API Airthings",
+        "de": "Airthings-API-Client",
+        "es": "Cliente de API de Airthings"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Open the Airthings API dashboard (link below), sign in with your Airthings account, create an API client, then copy its client id and secret here. Free, one client per account. Not affiliated with Airthings.",
+        "fr": "Ouvrez le tableau de bord de l'API Airthings (lien ci-dessous), connectez-vous avec votre compte Airthings, créez un client d'API, puis copiez ici son identifiant et son secret. Gratuit, un client par compte. Sans lien avec Airthings.",
+        "de": "Öffne das Dashboard der Airthings-API (Link unten), melde dich mit deinem Airthings-Konto an, erstelle einen API-Client und kopiere seine Client-ID und sein Secret hierher. Kostenlos, ein Client pro Konto. Nicht mit Airthings verbunden.",
+        "es": "Abra el panel de la API de Airthings (enlace abajo), inicie sesión con su cuenta de Airthings, cree un cliente de API y copie aquí su ID y su secreto. Gratuito, un cliente por cuenta. Sin relación con Airthings."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://consumer-api-doc.airthings.com/dashboard",
+          "label": {
+            "en": "Airthings API dashboard",
+            "fr": "Tableau de bord de l'API Airthings",
+            "de": "Dashboard der Airthings-API",
+            "es": "Panel de la API de Airthings"
+          }
+        },
+        {
+          "url": "https://consumer-api-doc.airthings.com/",
+          "label": {
+            "en": "Airthings Consumer API documentation",
+            "fr": "Documentation de l'API Airthings",
+            "de": "Dokumentation der Airthings-API",
+            "es": "Documentación de la API de Airthings"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "client_id",
+      "type": "string",
+      "label": {
+        "en": "Client id",
+        "fr": "Identifiant client (client id)",
+        "de": "Client-ID",
+        "es": "ID de cliente (client id)"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "required": true
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "client_secret",
+      "type": "secret",
+      "label": {
+        "en": "Client secret",
+        "fr": "Secret client (client secret)",
+        "de": "Client-Secret",
+        "es": "Secreto de cliente (client secret)"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "required": true
     },
     {
-      "key": "unit",
+      "key": "refresh_minutes",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Intervalle de relève",
+        "de": "Abfrageintervall",
+        "es": "Intervalo de lectura"
+      },
+      "description": {
+        "en": "The sensors upload every 2.5 to 5 minutes or more, and the API allows 120 requests per hour: 5 minutes is enough.",
+        "fr": "Les capteurs remontent leurs mesures toutes les 2,5 à 5 minutes ou plus, et l'API accepte 120 requêtes par heure : 5 minutes suffisent.",
+        "de": "Die Sensoren laden alle 2,5 bis 5 Minuten oder seltener hoch, und die API erlaubt 120 Anfragen pro Stunde: 5 Minuten reichen.",
+        "es": "Los sensores envían sus medidas cada 2,5 a 5 minutos o más, y la API admite 120 solicitudes por hora: 5 minutos bastan."
+      },
       "required": false,
-      "default": "celsius",
+      "default": "5",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "2",
+          "label": {
+            "en": "2 minutes",
+            "fr": "2 minutes",
+            "de": "2 Minuten",
+            "es": "2 minutos"
+          }
+        },
+        {
+          "value": "5",
+          "label": {
+            "en": "5 minutes (recommended)",
+            "fr": "5 minutes (recommandé)",
+            "de": "5 Minuten (empfohlen)",
+            "es": "5 minutos (recomendado)"
+          }
+        },
+        {
+          "value": "10",
+          "label": {
+            "en": "10 minutes",
+            "fr": "10 minutes",
+            "de": "10 Minuten",
+            "es": "10 minutos"
+          }
+        },
+        {
+          "value": "15",
+          "label": {
+            "en": "15 minutes",
+            "fr": "15 minutes",
+            "de": "15 Minuten",
+            "es": "15 minutos"
+          }
+        },
+        {
+          "value": "30",
+          "label": {
+            "en": "30 minutes",
+            "fr": "30 minutes",
+            "de": "30 Minuten",
+            "es": "30 minutos"
+          }
+        },
+        {
+          "value": "60",
+          "label": {
+            "en": "1 hour",
+            "fr": "1 heure",
+            "de": "1 Stunde",
+            "es": "1 hora"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "radon_reference",
+      "type": "select",
+      "label": {
+        "en": "Radon reference level",
+        "fr": "Niveau de référence du radon",
+        "de": "Radon-Referenzwert",
+        "es": "Nivel de referencia del radón"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "From this level the widget shows radon in red; from 100 Bq/m³ (WHO) in orange.",
+        "fr": "À partir de ce niveau, le widget affiche le radon en rouge ; à partir de 100 Bq/m³ (OMS), en orange.",
+        "de": "Ab diesem Wert zeigt das Widget Radon rot an, ab 100 Bq/m³ (WHO) orange.",
+        "es": "A partir de este nivel, el widget muestra el radón en rojo; a partir de 100 Bq/m³ (OMS), en naranja."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "300",
+      "options": [
+        {
+          "value": "300",
+          "label": {
+            "en": "300 Bq/m³ (France, EU)",
+            "fr": "300 Bq/m³ (France, UE)",
+            "de": "300 Bq/m³ (Deutschland, EU)",
+            "es": "300 Bq/m³ (España, UE)"
+          }
+        },
+        {
+          "value": "200",
+          "label": {
+            "en": "200 Bq/m³",
+            "fr": "200 Bq/m³",
+            "de": "200 Bq/m³",
+            "es": "200 Bq/m³"
+          }
+        },
+        {
+          "value": "148",
+          "label": {
+            "en": "148 Bq/m³ (US EPA, 4 pCi/L)",
+            "fr": "148 Bq/m³ (EPA américaine, 4 pCi/L)",
+            "de": "148 Bq/m³ (US-EPA, 4 pCi/L)",
+            "es": "148 Bq/m³ (EPA de EE. UU., 4 pCi/L)"
+          }
+        },
+        {
+          "value": "100",
+          "label": {
+            "en": "100 Bq/m³ (WHO)",
+            "fr": "100 Bq/m³ (OMS)",
+            "de": "100 Bq/m³ (WHO)",
+            "es": "100 Bq/m³ (OMS)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the feature names",
+        "fr": "Langue des noms de fonctionnalités",
+        "de": "Sprache der Funktionsnamen",
+        "es": "Idioma de los nombres de funciones"
+      },
+      "description": {
+        "en": "Gladys does not tell an integration your language: pick the one of the names given to new features.",
+        "fr": "Gladys ne transmet pas votre langue aux intégrations : choisissez celle des noms donnés aux nouvelles fonctionnalités.",
+        "de": "Gladys teilt Integrationen deine Sprache nicht mit: Wähle die Sprache der Namen neuer Funktionen.",
+        "es": "Gladys no comunica su idioma a las integraciones: elija el de los nombres de las nuevas funciones."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
-    }
-  ],
-  "scene_triggers": [
-    {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
-      "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
       },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
-        },
-        {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
-        }
-      ],
-      "variables": [
-        {
-          "key": "target",
-          "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
-        }
-      ]
-    }
-  ],
-  "scene_actions": [
-    {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
-      },
-      "timeout_seconds": 15,
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ],
-      "outputs": [
-        {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
-        }
-      ]
+      "timeout_seconds": 60
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "air_quality",
+      "label": {
+        "en": "Air quality",
+        "fr": "Qualité de l'air",
+        "de": "Luftqualität",
+        "es": "Calidad del aire"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Radon, CO₂ and particles per room, colour-coded against the reference levels.",
+        "fr": "Radon, CO₂ et particules par pièce, en couleur selon les niveaux de référence.",
+        "de": "Radon, CO₂ und Feinstaub pro Raum, farbig nach den Referenzwerten.",
+        "es": "Radón, CO₂ y partículas por estancia, en color según los niveles de referencia."
+      },
+      "icon": "wind",
+      "settings": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Sensor (empty: every room)",
+            "fr": "Capteur (vide : toutes les pièces)",
+            "de": "Sensor (leer: alle Räume)",
+            "es": "Sensor (vacío: todas las estancias)"
+          }
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,97 @@
+# Airthings
+
+Bringt deine **Airthings**-Luftqualitätsmonitore in Gladys: Radon, CO₂, VOC, Feinstaub, Temperatur, Luftfeuchtigkeit, Luftdruck, Batterie und das Alter der letzten Messung, gelesen über die offizielle Cloud-API von Airthings. Ein Dashboard-Widget zeigt die Luft jedes Raums auf einen Blick, mit einem klaren Farbcode für Radon.
+
+Radon ist ein natürliches radioaktives Gas, nach dem Rauchen die zweithäufigste Ursache für Lungenkrebs, und ein echtes Thema in Granitregionen (Schwarzwald, Bayerischer Wald, Erzgebirge, Bretagne…). In Deutschland und Frankreich liegt der Referenzwert bei 300 Bq/m³ (Jahresmittel).
+
+> **Ohne die Hardware entwickelt: Rückmeldungen willkommen.** Diese Integration wurde nach der offiziellen API-Spezifikation und veröffentlichten Antworten geschrieben, ohne Airthings-Sensor und ohne Konto. Wenn dir etwas falsch vorkommt, eröffne bitte ein Issue: https://github.com/guim31/gladys-airthings/issues
+
+Diese Integration ist nicht mit Airthings verbunden. Airthings, Wave, View und Space sind Marken von Airthings ASA.
+
+## Voraussetzungen
+
+- Gladys Assistant **5.1.0** oder neuer.
+- Ein oder mehrere Airthings-Sensoren (Wave, Wave Plus, Wave Mini, Wave Radon, Wave Enhance, View Plus, View Radon, View Pollution, Space…), in der Airthings-App registriert. Die Wave-Sensoren laden ihre Messungen über einen Airthings Hub, einen View Plus oder die Handy-App per Bluetooth hoch: Ein Wave, der nur mit dem Handy synchronisiert, wird nur aktualisiert, wenn die App in der Nähe geöffnet ist.
+- Ein **Airthings-API-Client** (kostenlos): seine Client-ID und sein Secret. Ein Client pro Airthings-Konto.
+- Internetzugang für Gladys: Die Daten kommen aus der Airthings-Cloud, nicht direkt von den Sensoren.
+
+## Konfiguration
+
+1. Öffne das Dashboard der Airthings-API (https://consumer-api-doc.airthings.com/dashboard) und melde dich mit deinem Airthings-Konto an.
+2. Erstelle einen API-Client und kopiere seine **Client-ID** und sein **Client-Secret**.
+3. Öffne in Gladys **Integrationen**, installiere **Airthings** (Integrationen → Von GitHub installieren, oder aus dem Store) und fülle die Konfiguration aus:
+   - **Client-ID** und **Client-Secret**;
+   - **Abfrageintervall**: 5 Minuten werden empfohlen (2 bis 60 Minuten);
+   - **Radon-Referenzwert**: Ab diesem Wert zeigt das Widget Radon rot an (300 Bq/m³ in Deutschland, Frankreich und der EU; 148 Bq/m³ ist der Handlungswert der US-EPA; 100 Bq/m³ die Empfehlung der WHO);
+   - **Sprache der Funktionsnamen**: die Namen neuer Funktionen (standardmäßig Französisch).
+4. Drücke auf **Verbindung testen**: Die Meldung listet die gefundenen Sensoren und die in dieser Stunde verbrauchten API-Anfragen auf.
+5. Öffne den Tab **Erkennung** der Integration und füge die gewünschten Sensoren zu Gladys hinzu.
+
+## Geräte und Funktionen
+
+Ein Gladys-Gerät pro Airthings-Sensor (der Hub, der nichts misst, wird weggelassen). Jedes Gerät hat nur die Funktionen, die sein Sensor wirklich meldet:
+
+| Funktion (deutsche Namen) | Einheit | Sensoren                                                             |
+| ------------------------- | ------- | -------------------------------------------------------------------- |
+| Radon (kurzfristig)       | Bq/m³   | Wave, Wave Plus, Wave Radon, View Plus, View Radon, Corentium Home 2 |
+| Radon (langfristig)       | Bq/m³   | wenn die API ihn sendet                                              |
+| CO₂                       | ppm     | Wave Plus, Wave Enhance, View Plus, View CO2, Space                  |
+| VOC                       | ppb     | Wave Plus, Wave Mini, Wave Enhance, View Plus                        |
+| PM1                       | µg/m³   | View Plus, View Pollution                                            |
+| PM2.5                     | µg/m³   | View Plus, View Pollution                                            |
+| PM10                      | µg/m³   | wenn die API ihn sendet                                              |
+| Temperatur                | °C      | die meisten Sensoren                                                 |
+| Luftfeuchtigkeit          | %       | die meisten Sensoren                                                 |
+| Luftdruck                 | hPa     | Wave Plus, Wave Enhance, View Plus                                   |
+| Helligkeit                | lux     | Wave Enhance, wenn die API sie sendet                                |
+| Lärmpegel                 | dBA     | Wave Enhance, wenn die API ihn sendet                                |
+| Batterie                  | %       | batteriebetriebene Sensoren                                          |
+| Alter der Messung         | Minuten | jeder Sensor: wie alt seine letzte Messung ist                       |
+
+Der kurzfristige Radonwert ist der Mittelwert der letzten 24 Stunden. Gladys hat keine Radon-Kategorie: Die Radon-Funktionen werden als Zähler in Bq/m³ veröffentlicht, und das Widget liefert den Farbcode. Gladys hat auch keine PM1-Kategorie: PM1 wird als PM2.5-Funktion mit dem Namen „PM1“ veröffentlicht.
+
+Alle Funktionen sind schreibgeschützt: Nichts lässt sich steuern.
+
+## Widget
+
+**Luftqualität** (Dashboard → Bearbeiten → Widget hinzufügen → Airthings):
+
+- **Alle Räume** (Einstellung leer gelassen): eine Zeile pro Sensor, sein Punkt in der Farbe seines schlechtesten Werts, die Räume mit Handlungsbedarf zuerst; dazu der höchste Radon- und der höchste CO₂-Wert des Hauses.
+- **Ein Sensor** (in der Einstellung gewählt): fünf Kacheln (Radon, CO₂, PM2.5, Temperatur, Luftfeuchtigkeit zuerst), die Radonkurve der letzten Woche, sobald das Gerät zu Gladys hinzugefügt ist, die Radonbewertung, die übrigen Werte, die Batterie und das Alter der Messung.
+
+Farben: Radon grün unter 100 Bq/m³ (WHO), orange bis zum Referenzwert der Konfiguration, rot ab diesem. CO₂ 800 / 1000 ppm, VOC 250 / 2000 ppb, Feinstaub 10 / 25 µg/m³, Luftfeuchtigkeit gut von 30 bis 60 %: die Schwellen der Airthings-Apps.
+
+## Auslöser und Aktionen
+
+Die Integration deklariert keine eigenen Szenen-Auslöser oder Szenen-Aktionen: Die Zustände der Geräte decken mit den Auslösern von Gladys („ein Gerätewert überschreitet eine Schwelle“) bereits jede Verwendung ab. Die einzige Aktion ist die Schaltfläche **Verbindung testen** im Konfigurationsbildschirm.
+
+## Szenenbeispiele
+
+- **Radon über dem Referenzwert**: Auslöser „Radon (kurzfristig) von Keller über 300“, Aktion: eine Nachricht „Lüfte den Keller: Radon über 300 Bq/m³“ senden und die Lüftung einschalten (eine smarte Steckdose).
+- **Schlafzimmer lüften**: Auslöser „CO₂ von Schlafzimmer über 1000“, Bedingung: jemand zu Hause, Aktion: eine Benachrichtigung „Öffne das Fenster im Schlafzimmer“.
+- **Stummer Sensor**: Auslöser „Alter der Messung von Wohnzimmer über 180“ (drei Stunden ohne Upload), Aktion: eine Nachricht „Prüfe den Airthings Hub oder die Batterien“.
+- **Batterien**: Auslöser „Batterie von Schlafzimmer unter 15“, Aktion: eine Nachricht, Batterien zu kaufen.
+
+## Abfrage und API-Kontingent
+
+Die Airthings Consumer API erlaubt **120 Anfragen pro Stunde** und API-Client. Eine Abfrage des ganzen Kontos kostet eine Anfrage (50 Sensoren pro Seite), dazu die Geräteliste einmal pro Stunde und alle paar Stunden ein neues Token: Bei 5 Minuten verbraucht die Integration etwa 13 Anfragen pro Stunde. Von sich aus geht sie nie über 100 pro Stunde, und sie pausiert bis zu der von der API genannten Zeit, wenn diese „zu viele Anfragen“ antwortet.
+
+Die Sensoren laden alle 2,5 Minuten (View-Reihe) bis 5 Minuten oder seltener (Wave-Reihe, über einen Hub oder das Handy) hoch: Häufigeres Abfragen würde nur dieselben Werte noch einmal lesen. Die Integration liest die Cloud mit ihrem eigenen Timer und veröffentlicht einen Wert an Gladys nur, wenn er sich ändert (und mindestens alle 6 Stunden). Ein in Gladys hinzugefügter Sensor bekommt seine Werte sofort, aus der letzten Abfrage.
+
+Im Container gespeichert: das Zugriffstoken, die ID des Airthings-Kontos und die pro Sensor gesehenen Funktionen (unter `/data`). Das Client-Secret bleibt in der Konfiguration von Gladys.
+
+## Fehlerbehebung
+
+- **„Client-ID oder Secret abgelehnt“**: Kopiere sie erneut aus dem Dashboard der Airthings-API (ohne Leerzeichen); ein gelöschter API-Client muss neu erstellt werden. Die Integration versucht es alle 30 Minuten erneut, oder sofort nach dem Speichern der Konfiguration.
+- **„Anfragekontingent der Airthings-API erreicht“**: Ein anderes Werkzeug nutzt denselben API-Client, oder das Intervall ist kurz. Die Abfrage geht von selbst weiter; wähle ein längeres Intervall.
+- **Ein Sensor hat keinen aktuellen Wert**: Sieh dir sein **Alter der Messung** an. Ein Wave braucht einen Hub, einen View Plus oder die Handy-App in der Nähe, um hochzuladen; vielleicht sind die Batterien leer.
+- **Ein Sensor fehlt**: Er muss in der Airthings-App mit demselben Konto wie der API-Client registriert sein; drücke im Tab Erkennung auf **Suchen**.
+- **Mehr Details**: Starte den Container mit `LOG_LEVEL=debug` neu. Die Protokolle enthalten nie die Client-ID, das Secret oder das Token.
+
+## Einschränkungen
+
+- Nur Cloud: kein lokales Auslesen der Sensoren per Bluetooth (der Gladys-Container hat kein Bluetooth).
+- Die Werte sind die des letzten Uploads des Sensors: bei einem Wave bis zu 5 Minuten oder mehr verzögert.
+- Die Schimmel- und Virenrisiko-Indizes mancher Sensoren werden nicht gelesen (Gladys hat dafür keine Funktion), ebenso wenig die Steuerung des Luftreinigers Renew.
+- Die Namen der Funktionen werden beim Hinzufügen des Geräts in Gladys festgelegt.
+- Ohne die Hardware entwickelt: Rückmeldungen willkommen auf https://github.com/guim31/gladys-airthings/issues

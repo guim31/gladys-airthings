@@ -1,0 +1,67 @@
+{
+  "results": [
+    {
+      "serialNumber": "2960000001",
+      "sensors": [
+        { "sensorType": "radonShortTermAvg", "value": 45, "unit": "bq" },
+        { "sensorType": "humidity", "value": 40, "unit": "pct" },
+        { "sensorType": "temp", "value": 21.6, "unit": "c" },
+        { "sensorType": "co2", "value": 678, "unit": "ppm" },
+        { "sensorType": "voc", "value": 234, "unit": "ppb" },
+        { "sensorType": "pressure", "value": 1012.3, "unit": "mbar" },
+        { "sensorType": "pm25", "value": 3, "unit": "mgpc" },
+        { "sensorType": "pm1", "value": 2, "unit": "mgpc" }
+      ],
+      "recorded": "2026-10-12T09:57:30",
+      "batteryPercentage": 100
+    },
+    {
+      "serialNumber": "2930000002",
+      "sensors": [
+        { "sensorType": "radonShortTermAvg", "value": 312, "unit": "bq" },
+        { "sensorType": "humidity", "value": 55, "unit": "pct" },
+        { "sensorType": "temp", "value": 19.2, "unit": "c" },
+        { "sensorType": "co2", "value": 1120, "unit": "ppm" },
+        { "sensorType": "voc", "value": 80, "unit": "ppb" },
+        { "sensorType": "pressure", "value": 1011.8, "unit": "mbar" }
+      ],
+      "recorded": "2026-10-12T09:55:00",
+      "batteryPercentage": 82
+    },
+    {
+      "serialNumber": "3210000003",
+      "sensors": [
+        { "sensorType": "humidity", "value": 29, "unit": "pct" },
+        { "sensorType": "pressure", "value": 975, "unit": "mbar" },
+        { "sensorType": "temp", "value": 22.4, "unit": "c" },
+        { "sensorType": "co2", "value": 540, "unit": "ppm" },
+        { "sensorType": "voc", "value": 120, "unit": "ppb" }
+      ],
+      "recorded": "2026-10-12T09:56:10",
+      "batteryPercentage": 95
+    },
+    {
+      "serialNumber": "2920000004",
+      "sensors": [
+        { "sensorType": "temp", "value": 23.1, "unit": "c" },
+        { "sensorType": "humidity", "value": 72, "unit": "pct" },
+        { "sensorType": "voc", "value": 410, "unit": "ppb" },
+        { "sensorType": "mold", "value": 2, "unit": "riskIndex" }
+      ],
+      "recorded": "2026-10-12T09:52:40",
+      "batteryPercentage": 60
+    },
+    {
+      "serialNumber": "2950000005",
+      "sensors": [
+        { "sensorType": "radonShortTermAvg", "value": 150, "unit": "bq" },
+        { "sensorType": "temp", "value": 12.5, "unit": "c" },
+        { "sensorType": "humidity", "value": 78, "unit": "pct" }
+      ],
+      "recorded": "2026-10-12T09:50:00",
+      "batteryPercentage": 45
+    }
+  ],
+  "hasNext": false,
+  "totalPages": 1
+}

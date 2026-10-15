@@ -1,0 +1,46 @@
+{
+  "devices": [
+    {
+      "serialNumber": "2960000001",
+      "home": "Maison",
+      "name": "Salon",
+      "type": "VIEW_PLUS",
+      "sensors": ["radonShortTermAvg", "temp", "humidity", "pressure", "co2", "voc", "pm1", "pm25"]
+    },
+    {
+      "serialNumber": "2930000002",
+      "home": "Maison",
+      "name": "Chambre",
+      "type": "WAVE_PLUS",
+      "sensors": ["radonShortTermAvg", "temp", "humidity", "pressure", "co2", "voc"]
+    },
+    {
+      "serialNumber": "3210000003",
+      "home": "Maison",
+      "name": "Bureau",
+      "type": "WAVE_ENHANCE",
+      "sensors": ["temp", "humidity", "pressure", "co2", "voc", "sla", "lux"]
+    },
+    {
+      "serialNumber": "2920000004",
+      "home": "Maison",
+      "name": "Salle de bain",
+      "type": "WAVE_MINI",
+      "sensors": ["temp", "humidity", "voc", "mold"]
+    },
+    {
+      "serialNumber": "2950000005",
+      "home": "Maison",
+      "name": "Cave",
+      "type": "WAVE_RADON",
+      "sensors": ["radonShortTermAvg", "temp", "humidity"]
+    },
+    {
+      "serialNumber": "2810000006",
+      "home": "Maison",
+      "name": "Hub",
+      "type": "HUB",
+      "sensors": []
+    }
+  ]
+}

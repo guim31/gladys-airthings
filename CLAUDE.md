@@ -16,12 +16,13 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/hub.test.js              # one file
+node --test --test-name-pattern "radon"   # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
-npx github:GladysAssistant/integration-store .   # store admission checks
+npx github:GladysAssistant/integration-store --skip-image-check .   # store admission checks
+node scripts/probe.mjs                    # real Airthings API, read-only (needs Internet)
 ```
 
 The CI (`.github/workflows/ci.yml`) runs `format:check`, `lint` and `test` on
@@ -32,15 +33,23 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/app.js                        registers every SDK handler on the hub (shared with the tests)
+src/hub.js                        the account: reading cycle, own timer, onPoll fallback, publishing
+src/airthings/client.js           Consumer API client: token, account, pages, quota, error kinds
+src/airthings/http.js             the only network call (fetch, timeout), the tests' seam
+src/airthings/model.js            API answers → records: sensor types, units, product names
+src/devices.js                    Gladys device and features of a sensor, feature names (4 languages)
+src/levels.js                     good / fair / poor thresholds (radon reference, Airthings apps)
+src/widgets.js                    `air_quality` dashboard widget
+src/texts.js                      connection status, errors, test report (4 languages)
+src/store.js                      /data/airthings-state.json: token, account id, features seen
+src/issues.js                     repeated failures logged once
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+scripts/probe.mjs                 read-only probe of the real API, prints nothing sensitive
+gladys-assistant-integration.json manifest: name, config_schema, actions, widget, image...
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (same sections)
+test/                             node --test, SDK's fake Gladys + in-memory Airthings cloud
+test/fixtures/airthings/          API answers (origin in its README), anonymized
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +79,10 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German and Spanish: action
+  messages, widget texts, feature names, manifest texts, and `docs/en.md`,
+  `docs/fr.md`, `docs/de.md`, `docs/es.md`, kept in sync (same sections).
+  German says "du", Spanish "usted". `test/i18n.test.js` checks it.
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -122,6 +133,19 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - `level-sensor/decimal` n'existe pas côté serveur. `light-sensor/binary` n'a pas de libellé dans
   le front (pastille vide) : préférer `input/binary`. Un `text/text` reçoit `{ text }`, jamais
   vide, sinon l'état est ignoré.
+- **Le front nomme une ligne d'après l'appareil, pas la fonctionnalité, quand aucune autre
+  fonctionnalité de l'appareil n'a le même _type_** (`shouldDisplayDeviceName` de
+  `front/src/utils/device.js`, v5.2.1, qui compare le type seul, pas la catégorie) : un radon seul
+  `integer` à côté de mesures `decimal` s'affiche « Salon 45 Bq/m³ », et les listes d'édition
+  montrent le libellé générique du couple. Choisir les types pour que chacun soit partagé par au
+  moins deux fonctionnalités de l'appareil, et le vérifier dans `test/gladys-rules.test.js`
+  (relevé sur gladys-airthings, 15/10/2026).
+- Pas de catégorie radon ni PM1 dans le cœur (5.2.1) ; l'unité `becquerel-per-cubic-meter`
+  existe (Matter), affichée « Bq/m³ ». `light-sensor/integer` n'a pas d'icône dans la table :
+  préférer `light-sensor/decimal`. Le cœur accepte n'importe quel couple catégorie/type/unité
+  connu (`setDiscoveredDevices` ne contrôle pas leur association) : c'est la table du front qui
+  décide de l'affichage. Les couleurs des pastilles (`BadgeNumberDeviceValue.jsx`) suivent la
+  catégorie : CO₂ 600/1200 ppm, COV 250/2000 ppb, PM2.5 15/25 µg/m³, AQI 50…300.
 - **Détecteur d'ouverture (`opening-sensor`) : 0 = ouvert, 1 = fermé** (`OPENING_SENSOR_STATE`), à
   l'inverse de l'intuition et des autres détecteurs (mouvement, fuite, fumée : 1 = détecté). Une
   porte ouverte publiée à 1 s'affiche « Fermé » et fausse scènes et historique. Le figer par un test.
@@ -198,6 +222,14 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - **Les clés de widgets, de déclencheurs et d'actions sont figées une fois publiées.**
 - `gladys_version` `>=5.1.0` dès qu'il y a widgets, déclencheurs ou actions de scène.
 
+**SDK, faux Gladys**
+
+- `gladys.fake.transports` est déjà aplati : des entrées `{ device_external_id, transport }`, pas
+  le corps `{ external_id, transport }` envoyé.
+- Le `CHANGELOG.md` du template cite `` `## [Unreleased]` `` dans son introduction : un script
+  qui cherche la première occurrence coupe le fichier au mauvais endroit (`test/release.test.js`
+  le voit).
+
 ## Store
 
 - Validateur officiel, depuis la racine : `npx -y github:GladysAssistant/integration-store .`
@@ -233,3 +265,35 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Intégration Airthings
+
+- **API** : Airthings Consumer API (`consumer-api.airthings.com/v1`), spécification OpenAPI
+  vendorisée dans `michaelahern/airthings-consumer-api` (`vendor-docs/openapi.yaml`, ISC). Jeton
+  par `POST accounts-api.airthings.com/v1/token`, identifiants en HTTP Basic et corps JSON
+  `{ grant_type: 'client_credentials' }` (forme de ce client, en production dans
+  homebridge-airthings). Puis `/accounts` (id constant pour un compte grand public), `/devices`,
+  `/sensors?unit=metric` (50 appareils par page, `hasNext`/`totalPages`). L'ancienne API
+  `ext-api.airthings.com` de pyAirthings et de Home Assistant n'est pas utilisée.
+- **Quota : 120 requêtes par heure** et par client d'API (un client par compte). Une relève =
+  une requête pour tout le compte ; liste des appareils une fois par heure ; budget propre de 100
+  requêtes sur une heure glissante ; un 429 suspend tout jusqu'à `X-RateLimit-Retry-After`
+  (secondes ou horodatage, les deux sont lus), borné entre 1 min et 1 h. Jeton et id de compte
+  dans `/data` : un redémarrage ne coûte aucune requête. Des identifiants refusés ne sont réessayés
+  que toutes les 30 min.
+- **Unités** de la réponse : `bq`, `c`, `pct`, `mbar`, `ppm`, `ppb`, `mgpc` (= µg/m³ malgré le nom),
+  `lux`, `dba` ; en impérial `pci`, `f`, `pa`. Une unité inconnue écarte la valeur (un
+  avertissement). `recorded` arrive sans fuseau (`2025-01-01T12:34:56`) : lu en UTC, **non
+  vérifié**.
+- Un Wave Enhance annonce `sla` et `lux` dans `/devices` sans les envoyer
+  (home-assistant/core#140845) : les fonctionnalités suivent la première relève, pas la liste
+  annoncée, et sont mémorisées dans `/data`.
+- **Couples** : radon `counter-sensor/integer` en Bq/m³, PM1 `pm25-sensor/decimal`, CO₂
+  `co2-sensor/decimal` ; l'âge de la mesure (`duration`, minutes) prend le type `integer` quand
+  une seule autre fonctionnalité entière existe (`ageType`), pour qu'aucun type ne soit seul.
+- Pas de déclencheur ni d'action de scène : seuils radon, CO₂, batterie et âge de la mesure sont
+  couverts par les déclencheurs natifs sur l'état des appareils.
+- Non vérifié faute de compte et de réseau : forme exacte de la requête de jeton, types et unités
+  de chaque modèle, fuseau de `recorded`, en-têtes d'un vrai 429. `scripts/probe.mjs` les éprouve.
+- Le proxy des sessions refuse `*.airthings.com` et `consumer-api-doc.airthings.com` : travailler sur
+  les fixtures de `test/fixtures/airthings/`.
