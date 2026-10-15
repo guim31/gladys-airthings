@@ -1,33 +1,37 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeConfig, DEFAULT_CONFIG } from '../src/config.js';
+import { hasCredentials, normalizeConfig } from '../src/config.js';
 
-test('normalizeConfig returns the defaults when called with no argument', () => {
-  assert.deepEqual(normalizeConfig(), DEFAULT_CONFIG);
+test('defaults: five minutes, 300 Bq/m³, French names, no credentials', () => {
+  const config = normalizeConfig();
+  assert.deepEqual(config, {
+    clientId: '',
+    clientSecret: '',
+    refreshMs: 5 * 60_000,
+    radonReference: 300,
+    language: 'fr',
+  });
+  assert.equal(hasCredentials(config), false);
 });
 
-test('normalizeConfig keeps user values over the defaults', () => {
-  const config = normalizeConfig({ latitude: 45.5, longitude: -73.6, unit: 'fahrenheit' });
-  assert.equal(config.latitude, 45.5);
-  assert.equal(config.longitude, -73.6);
-  assert.equal(config.unit, 'fahrenheit');
-});
+test('values from the form: trimmed credentials, known options only', () => {
+  const config = normalizeConfig({
+    client_id: '  abc  ',
+    client_secret: ' s3cret\n',
+    refresh_minutes: 15,
+    radon_reference: '100',
+    language: 'de',
+  });
+  assert.equal(config.clientId, 'abc');
+  assert.equal(config.clientSecret, 's3cret');
+  assert.equal(config.refreshMs, 15 * 60_000);
+  assert.equal(config.radonReference, 100);
+  assert.equal(config.language, 'de');
+  assert.equal(hasCredentials(config), true);
 
-test('normalizeConfig coerces numeric strings coming from a form', () => {
-  const config = normalizeConfig({ latitude: '48.8', longitude: '2.3', poll_frequency: '600' });
-  assert.equal(config.latitude, 48.8);
-  assert.equal(config.longitude, 2.3);
-  assert.equal(config.poll_frequency, 600);
-  assert.equal(typeof config.poll_frequency, 'number');
-});
-
-test('normalizeConfig falls back to the default for a missing numeric field', () => {
-  const config = normalizeConfig({ unit: 'celsius' });
-  assert.equal(config.poll_frequency, DEFAULT_CONFIG.poll_frequency);
-});
-
-test('GLADYS_PREFER_LOCAL defaults to true and only an explicit false disables it', () => {
-  assert.equal(normalizeConfig().GLADYS_PREFER_LOCAL, true);
-  assert.equal(normalizeConfig({ GLADYS_PREFER_LOCAL: true }).GLADYS_PREFER_LOCAL, true);
-  assert.equal(normalizeConfig({ GLADYS_PREFER_LOCAL: false }).GLADYS_PREFER_LOCAL, false);
+  const odd = normalizeConfig({ refresh_minutes: '1', radon_reference: '250', language: 'it' });
+  assert.equal(odd.refreshMs, 5 * 60_000);
+  assert.equal(odd.radonReference, 300);
+  assert.equal(odd.language, 'fr');
+  assert.deepEqual(normalizeConfig(null).clientId, '');
 });

@@ -1,61 +1,97 @@
-# Demo Devices Template
+# Airthings
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+Brings your **Airthings** air quality monitors into Gladys: radon, CO₂, VOC, particles, temperature, humidity, pressure, battery and the age of the last measurement, read from the official Airthings cloud API. A dashboard widget shows the air of every room at a glance, with a clear colour code for radon.
 
-## What you get
+Radon is a natural radioactive gas, the second cause of lung cancer after smoking, and a real concern in granite regions (Brittany, the Massif Central, Corsica, the Vosges…). In France, the reference level is 300 Bq/m³ (annual average).
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+> **Developed without the hardware: feedback welcome.** This integration was written from the official API specification and published answers, without an Airthings sensor nor account. If something looks wrong, please open an issue: https://github.com/guim31/gladys-airthings/issues
+
+This integration is not affiliated with Airthings. Airthings, Wave, View and Space are trademarks of Airthings ASA.
+
+## Requirements
+
+- Gladys Assistant **5.1.0** or later.
+- One or more Airthings sensors (Wave, Wave Plus, Wave Mini, Wave Radon, Wave Enhance, View Plus, View Radon, View Pollution, Space…) registered in the Airthings app. The Wave sensors upload through an Airthings Hub, a View Plus, or the phone app over Bluetooth: a Wave that only syncs with the phone is updated only when the app is open nearby.
+- An **Airthings API client** (free): its client id and secret. One client per Airthings account.
+- Internet access for Gladys: the data comes from the Airthings cloud, not from the sensors directly.
 
 ## Configuration
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+1. Open the Airthings API dashboard (https://consumer-api-doc.airthings.com/dashboard) and sign in with your Airthings account.
+2. Create an API client, then copy its **client id** and **client secret**.
+3. In Gladys, open **Integrations**, install **Airthings** (Integrations → Install from GitHub, or from the store), then fill in its configuration:
+   - **Client id** and **Client secret**;
+   - **Refresh interval**: 5 minutes is recommended (2 to 60 minutes);
+   - **Radon reference level**: from this level the widget shows radon in red (300 Bq/m³ in France and the EU; 148 Bq/m³ is the US EPA action level; 100 Bq/m³ the WHO recommendation);
+   - **Language of the feature names**: the names given to new features (French by default).
+4. Press **Test the connection**: it lists the sensors found and the API requests used this hour.
+5. Open the **Discovery** tab of the integration and add the sensors you want in Gladys.
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+## Devices and features
 
-## Actions
+One Gladys device per Airthings sensor (the hub, which measures nothing, is left out). Each device only has the features its sensor really reports:
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+| Feature (English names) | Unit    | Sensors                                                              |
+| ----------------------- | ------- | -------------------------------------------------------------------- |
+| Radon (short term)      | Bq/m³   | Wave, Wave Plus, Wave Radon, View Plus, View Radon, Corentium Home 2 |
+| Radon (long term)       | Bq/m³   | when the API sends it                                                |
+| CO₂                     | ppm     | Wave Plus, Wave Enhance, View Plus, View CO2, Space                  |
+| VOC                     | ppb     | Wave Plus, Wave Mini, Wave Enhance, View Plus                        |
+| PM1                     | µg/m³   | View Plus, View Pollution                                            |
+| PM2.5                   | µg/m³   | View Plus, View Pollution                                            |
+| PM10                    | µg/m³   | when the API sends it                                                |
+| Temperature             | °C      | most sensors                                                         |
+| Humidity                | %       | most sensors                                                         |
+| Pressure                | hPa     | Wave Plus, Wave Enhance, View Plus                                   |
+| Light                   | lux     | Wave Enhance, when the API sends it                                  |
+| Noise                   | dBA     | Wave Enhance, when the API sends it                                  |
+| Battery                 | %       | battery-powered sensors                                              |
+| Measurement age         | minutes | every sensor: how old its last measurement is                        |
 
-## Scenes
+The short-term radon is the average of the last 24 hours. Gladys has no radon category: the radon features are published as counters in Bq/m³, and the widget gives the colour code. Gladys has no PM1 category either: PM1 is published as a PM2.5 feature named "PM1".
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+All features are read-only: nothing can be controlled.
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+## Widget
 
-## Dashboard
+**Air quality** (dashboard → Edit → add a widget → Airthings):
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+- **Every room** (setting left empty): one row per sensor, its dot coloured by the worst of its values, the rooms that need attention first; plus the highest radon and the highest CO₂ of the house.
+- **One sensor** (chosen in the setting): five tiles (radon, CO₂, PM2.5, temperature, humidity first), the radon curve of the last week once the device is added to Gladys, the radon verdict, the other values, the battery and the age of the measurement.
+
+Colours: radon green under 100 Bq/m³ (WHO), orange up to the reference level of the configuration, red from it. CO₂ 800 / 1000 ppm, VOC 250 / 2000 ppb, particles 10 / 25 µg/m³, humidity good from 30 to 60 %: the thresholds of the Airthings apps.
+
+## Triggers and actions
+
+The integration declares no scene trigger nor scene action of its own: the states of the devices already cover every use with the triggers of Gladys ("a device value goes above a threshold"). The only action is the **Test the connection** button of the configuration screen.
+
+## Scene examples
+
+- **Radon above the reference**: trigger "Radon (short term) of Cellar above 300", action: send a message "Air the cellar: radon above 300 Bq/m³" and switch on the ventilation (a smart plug).
+- **Air the bedroom**: trigger "CO₂ of Bedroom above 1000", condition: someone at home, action: a notification "Open the window of the bedroom".
+- **Sensor silent**: trigger "Measurement age of Living room above 180" (three hours without upload), action: a message "Check the Airthings hub or the batteries".
+- **Batteries**: trigger "Battery of Bedroom below 15", action: a message to buy batteries.
+
+## Refresh and API quota
+
+The Airthings Consumer API allows **120 requests per hour** per API client. One reading of the whole account is one request (50 sensors per page), plus the device list once an hour and a new token every few hours: at 5 minutes the integration uses about 13 requests an hour. It never goes beyond 100 an hour on its own, and stops until the time the API gives when it answers "too many requests".
+
+The sensors upload every 2.5 minutes (View series) to 5 minutes or more (Wave series, through a hub or the phone): reading more often only reads the same values again. The integration reads the cloud on its own timer, and publishes a value to Gladys only when it changes (and at least every 6 hours). A sensor added in Gladys gets its values at once, from the last reading.
+
+Stored in the container: the access token, the Airthings account id and the features seen per sensor (under `/data`). The client secret stays in the Gladys configuration.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **"client id or secret refused"**: copy them again from the Airthings API dashboard (no space); a deleted API client must be recreated. The integration tries again every 30 minutes, or at once after you save the configuration.
+- **"request quota of the Airthings API reached"**: another tool uses the same API client, or the interval is short. Readings resume on their own; choose a longer interval.
+- **A sensor shows no recent value**: look at its **Measurement age**. A Wave needs a hub, a View Plus or the phone app nearby to upload; the batteries may be flat.
+- **A sensor is missing**: it must be registered in the Airthings app with the same account as the API client; press **Search** in the Discovery tab.
+- **More details**: restart the container with `LOG_LEVEL=debug`. The logs never contain the client id, the secret nor the token.
+
+## Limits
+
+- Cloud only: no local Bluetooth reading of the sensors (the Gladys container has no Bluetooth).
+- The values are those of the last upload of the sensor: up to 5 minutes or more behind for a Wave.
+- The mold and virus risk indexes of some sensors are not read (Gladys has no feature for them), nor the Renew air purifier controls.
+- The names of the features are frozen when the device is added in Gladys.
+- Developed without the hardware: feedback welcome at https://github.com/guim31/gladys-airthings/issues

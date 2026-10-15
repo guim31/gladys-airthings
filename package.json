@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-airthings",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Gladys Assistant external integration for Airthings air quality monitors (radon, CO2, VOC, particles) through the Airthings Consumer API.",
   "type": "module",
   "main": "index.js",
   "scripts": {
