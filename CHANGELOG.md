@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-15
+
 ### Added
 
 - Airthings air quality monitors in Gladys, through the official Airthings
@@ -34,4 +36,5 @@ the notes of the version's GitHub Release.
 - Feature names, messages, widget and documentation in English, French,
   German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-airthings/commits/main
+[Unreleased]: https://github.com/guim31/gladys-airthings/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/guim31/gladys-airthings/releases/tag/v1.0.1

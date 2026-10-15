@@ -8,8 +8,8 @@
     "de": "Radon, CO₂, VOC, Feinstaub, Temperatur und Luftfeuchtigkeit deiner Airthings-Sensoren.",
     "es": "Radón, CO₂, COV, partículas, temperatura y humedad de sus sensores Airthings."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/guim31/gladys-airthings:1.0.0",
+  "version": "1.0.1",
+  "docker_image": "ghcr.io/guim31/gladys-airthings:1.0.1",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/guim31/gladys-airthings/main/cover.png",
   "categories": ["environment"],
